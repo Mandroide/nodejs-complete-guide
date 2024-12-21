@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(shopRouter);
 
-app.use(adminRouter);
+app.use('/admin', adminRouter);
 
 app.use((req, res, next) => {
     res.status(404).send("<h1>Page not found!</h1>");
