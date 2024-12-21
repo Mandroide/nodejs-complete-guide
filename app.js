@@ -1,6 +1,18 @@
-const http = require('http')
-const requestHandler = require('./routes')
+const express = require('express')
 
-const server = http.createServer(requestHandler);
+const app = express()
 
-server.listen(8080);
+/**
+ * This for regex start
+ */
+app.use('/add-product', (req, res, next) => {
+    console.log("In add product middleware!");
+    res.status(200).send("<h1>The 'Add Product' Page</h1>");
+})
+
+app.use('/', (req, res, next) => {
+    console.log("In another middleware!");
+    res.status(200).send("<h1>Hello From Express!</h1>");
+})
+
+app.listen(8080);
