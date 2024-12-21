@@ -9,7 +9,7 @@ app.use('/add-product', (req, res) => {
     res.status(200).send("<form action='/product' method='post'><input type='text' name='title'><button type='submit'>Add Product</button> </form>");
 })
 
-app.use('/product', (req, res) => {
+app.post('/product', (req, res) => {
     console.log(req.body)
     res.redirect('/');
 })
