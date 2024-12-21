@@ -13,7 +13,7 @@ app.use(shopRouter);
 app.use('/admin', adminRouter);
 
 app.use((req, res, next) => {
-    res.status(404).send("<h1>Page not found!</h1>");
+    res.status(404).sendFile("not-found.html", {root: "views"});
 });
 
 
