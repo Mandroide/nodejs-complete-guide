@@ -17,7 +17,7 @@ app.use(shopRouter);
 app.use('/admin', adminData.router);
 
 app.use((req, res, next) => {
-    res.status(404).sendFile("not-found.html", {root: "views"});
+    res.status(404).render("not-found");
 });
 
 
