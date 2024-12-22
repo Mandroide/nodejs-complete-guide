@@ -1,6 +1,7 @@
 const express = require('express');
 const adminRouter = require('./routes/admin');
 const shopRouter = require('./routes/shop');
+const errorController = require('./controllers/error');
 
 const bodyParser = require('body-parser');
 
@@ -17,12 +18,7 @@ app.use(shopRouter);
 
 app.use('/admin', adminRouter);
 
-app.use((req, res, next) => {
-    res.status(404).render("not-found", {
-        pageTitle: "Page Not Found",
-        layout: false,
-    });
-});
+app.use(errorController.getNotFound);
 
 
 app.listen(8080);
