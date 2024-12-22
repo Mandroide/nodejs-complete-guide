@@ -3,19 +3,10 @@ const adminData = require('./routes/admin');
 const shopRouter = require('./routes/shop');
 
 const bodyParser = require('body-parser');
-const expressHbs = require('express-handlebars');
 
 const app = express();
 
-const viewEngine = "hbs";
-app.engine(viewEngine, expressHbs.engine(
-    {
-        extname: 'hbs',
-        layoutsDir: "views/layouts",
-        defaultLayout: "main-layout",
-    }
-));
-
+const viewEngine = "ejs";
 app.set('view engine', viewEngine);
 app.set('views', 'views');
 
