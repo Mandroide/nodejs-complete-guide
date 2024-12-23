@@ -39,7 +39,6 @@ module.exports = class Product {
                 console.log(err);
             })
         });
-        return this;
     }
 
     static deleteById(id) {
