@@ -38,24 +38,15 @@ exports.getIndex = (req, res) => {
 }
 
 exports.getCart = (req, res) => {
-    Cart.getCart(cart => {
-        Product.findAll().then((products) => {
-            const cartProducts = [];
-            for (const product of products) {
-                const cartProductData = cart.products.find((prod) => prod.id === product.id);
-                if (cartProductData) {
-                    cartProducts.push({productData: product, qty: cartProductData.qty});
-                }
-            }
-            res.render('shop/cart', {
+    req.user.getCart()
+        .then(cart => cart.getProducts())
+        .then((products) => res.render('shop/cart',
+            {
                 pageTitle: 'Cart',
                 path: '/cart',
-                products: cartProducts
-
-            });
-        }).catch((err) => {
-            console.log(err);
-        });
+                products: products
+            })).catch((err) => {
+        console.log(err);
     });
 }
 

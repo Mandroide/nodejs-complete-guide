@@ -33,8 +33,8 @@ sequelize.sync()
             User.findByPk(1)
                 .then(user => {
                     req.user = user;
-                    next();
-                })
+                    return user.createCart();
+                }).then(() => next())
                 .catch(err => {
                     console.log(err);
                 });
