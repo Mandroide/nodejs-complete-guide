@@ -1,32 +1,29 @@
-const Cart = require('./Cart');
-const db = require('../util/database');
+const Sequelize = require("sequelize");
+const sequelize = require("../util/database");
 
-module.exports = class Product {
-    constructor(id, title, imageUrl, description, price) {
-        this.id = id;
-        this.title = title;
-        this.imageUrl = imageUrl;
-        this.description = description;
-        this.price = price;
+module.exports = sequelize.define("product", {
+    id: {
+        type: Sequelize.BIGINT,
+        autoIncrement: true,
+        allowNull: false,
+        primaryKey: true,
+    },
+    title: {
+        type: Sequelize.STRING,
+        allowNull: false,
+    },
+    description: {
+        type: Sequelize.STRING,
+        allowNull: false,
+    },
+    price: {
+        type: Sequelize.DECIMAL,
+        allowNull: false,
+    },
+    imageUrl: {
+        type: Sequelize.STRING,
+        allowNull: false,
     }
-
-    save() {
-        return this.id ? db.query("UPDATE products SET title = ?, imageUrl = ?, description = ?, price = ? WHERE id = ?",
-                [this.title, this.imageUrl, this.description, this.price, this.id]) :
-            db.query("INSERT INTO products (title, imageUrl, description, price) VALUES (?, ?, ?, ?)",
-                [this.title, this.imageUrl, this.description, this.price])
-    }
-
-    static deleteById(id) {
-        return db.query("UPDATE products SET isActive = ? WHERE id = ?",
-            [false, id]);
-    }
-
-    static fetchAll() {
-        return db.query("SELECT * FROM products LIMIT 100 WHERE isActive");
-    }
-
-    static findById(id) {
-        return db.query("SELECT * FROM products WHERE isActive AND id = $1", [id],);
-    }
-}
+}, {
+    paranoid: true,
+});
