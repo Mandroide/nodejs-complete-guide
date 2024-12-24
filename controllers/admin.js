@@ -9,7 +9,7 @@ exports.getAddProduct = (req, res) => {
 };
 
 exports.postAddProduct = (req, res) => {
-    Product.create({
+    req.user.createProduct({
         title: req.body.title,
         imageUrl: req.body.imageUrl,
         price: +req.body.price,
