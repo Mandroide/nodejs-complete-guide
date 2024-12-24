@@ -9,17 +9,7 @@ const Product = require('./models/Product');
 const bodyParser = require('body-parser');
 
 Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'});
-// User.hasMany(Product);
-
-app.use((req, res, next) => {
-    User.findByPk(1)
-        .then(user => {
-            req.user = user;
-        })
-        .catch(err => {
-            console.log(err);
-        });
-});
+User.hasMany(Product);
 
 sequelize.sync()
     .then(() => User.findByPk(1))
@@ -32,6 +22,17 @@ sequelize.sync()
 
         app.use(bodyParser.urlencoded({extended: true}));
         app.use(express.static('public'));
+
+        app.use((req, res, next) => {
+            User.findByPk(1)
+                .then(user => {
+                    req.user = user;
+                    next();
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+        });
 
         app.use(shopRouter);
 
