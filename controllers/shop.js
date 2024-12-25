@@ -52,13 +52,30 @@ exports.getCart = (req, res) => {
 
 exports.postCart = (req, res) => {
     const productId = +req.body.id;
-    Product.findById(productId).then(({rows}) => {
-        const row = rows[0];
-        Cart.addProduct(productId, +row.price)
-        res.redirect('/cart');
-    }).catch(err => {
-        console.log(err);
-    });
+    let fetchedCart;
+    req.user.getCart()
+        .then(cart => {
+            fetchedCart = cart;
+            return cart.getProducts({where: {id: productId}});
+        })
+        .then((products) => {
+            let product;
+            if (products) {
+                product = products[0];
+            }
+            let newQuantity = 1;
+
+            if (product) {
+                // ...
+            }
+            return Product.findByPk(productId).then((product) => fetchedCart.addProduct(product,
+                {through: {quantity: newQuantity, unitPrice: product.price}})
+            ).catch((err) => console.log(err));
+        })
+        .then(() => res.redirect('/cart'))
+        .catch((err) => {
+            console.log(err);
+        });
 }
 
 exports.postCartDelete = (req, res) => {
