@@ -18,5 +18,5 @@ module.exports = sequelize.define("cartItem", {
 
     }
 }, {
-    paranoid: false
+    paranoid: true
 });
