@@ -53,25 +53,28 @@ exports.getCart = (req, res) => {
 exports.postCart = (req, res) => {
     const productId = +req.body.id;
     let fetchedCart;
+    let newQuantity = 1;
     req.user.getCart()
         .then(cart => {
             fetchedCart = cart;
-            return cart.getProducts({where: {id: productId}});
+            return fetchedCart.getProducts({where: {id: productId}})
         })
-        .then((products) => {
-            let product;
+        .then(products => {
+            let cartItem;
             if (products) {
-                product = products[0];
+                const product = products[0];
+                newQuantity = product.cartItem.quantity + 1;
+                return product;
+            } else {
+                return Product.findByPk(productId);
             }
-            let newQuantity = 1;
 
-            if (product) {
-                // ...
-            }
-            return Product.findByPk(productId).then((product) => fetchedCart.addProduct(product,
-                {through: {quantity: newQuantity, unitPrice: product.price}})
-            ).catch((err) => console.log(err));
-        })
+        }).then(product => fetchedCart.addProduct(product, {
+        through: {
+            quantity: newQuantity,
+            unitPrice: product.price
+        }
+    }))
         .then(() => res.redirect('/cart'))
         .catch((err) => {
             console.log(err);
@@ -80,9 +83,14 @@ exports.postCart = (req, res) => {
 
 exports.postCartDelete = (req, res) => {
     const productId = +req.body.id;
-    Product.findById(productId).then(({rows}) => {
-        const row = rows[0];
-        Cart.deleteProduct(productId, row.price)
+    let fetchedCart;
+    req.user.getCart().then((cart) => {
+        fetchedCart = cart;
+        return fetchedCart.getProducts({where: {id: productId}})
+    }).then(products => {
+        const product = products[0];
+        return product.cartItem.destroy();
+    }).then(() => {
         res.redirect('/cart');
     }).catch(err => {
         console.log(err);
