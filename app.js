@@ -7,6 +7,8 @@ const User = require('./models/User');
 const Product = require('./models/Product');
 const Cart = require('./models/Cart');
 const CartItem = require('./models/CartItem');
+const Order = require('./models/Order');
+const OrderItem = require('./models/OrderItem');
 
 const bodyParser = require('body-parser');
 
@@ -16,6 +18,9 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, {through: CartItem});
 Product.belongsToMany(Cart, {through: CartItem});
+Order.belongsTo(User)
+User.hasMany(Order)
+Order.belongsToMany(Product, {through: OrderItem});
 
 sequelize.sync()
     .then(() => User.findByPk(1))
