@@ -55,12 +55,12 @@ exports.getCart = (req, res) => {
 
 exports.postCart = (req, res) => {
     const productId = req.body.id;
-    Product.findById(productId).then((product) => {
-        req.user.addToCart(product);
-        res.redirect('/cart')
-    }).catch((err) => {
-        console.log(err);
-    });
+    Product.findById(productId)
+        .then((product) => req.user.addToCart(product))
+        .then(() => res.redirect('/cart'))
+        .catch((err) => {
+            console.log(err);
+        });
 }
 
 exports.postCartDelete = (req, res) => {
@@ -83,7 +83,8 @@ exports.postOrder = (req, res) => {
                 },
                 items: items,
             });
-            return order.save();})
+            return order.save();
+        })
         .then(() => req.user.clearCart())
         .then(() => res.redirect('/orders'))
         .catch((err) => {
