@@ -4,8 +4,7 @@ const User = require("../models/User");
 exports.getLogin = (req, res) => {
     res.render('auth/login', {
         path: '/login',
-        pageTitle: 'Login',
-        isAuthenticated: req.session.isAuthenticated
+        pageTitle: 'Login'
     });
 };
 
@@ -20,7 +19,6 @@ exports.postLogin = (req, res) => {
                             res.cookie("Max-Age", 10);
                             req.session.user = user;
                             return req.session.save(err => {
-                                console.log(err);
                                 return res.redirect('/')
                             });
                         } else {
@@ -41,8 +39,7 @@ exports.postLogin = (req, res) => {
 exports.getSignup = (req, res) => {
     res.render('auth/signup', {
         path: '/signup',
-        pageTitle: 'Signup',
-        isAuthenticated: false
+        pageTitle: 'Signup'
     });
 };
 

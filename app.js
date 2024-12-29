@@ -6,6 +6,8 @@ const adminRouter = require('./routes/admin');
 const shopRouter = require('./routes/shop');
 const authRouter = require('./routes/auth');
 const cookieParser = require("cookie-parser");
+/** CSRF-CSRF PACKAGE */
+const {csrfSync} = require('csrf-sync');
 const errorController = require('./controllers/error');
 const User = require('./models/User');
 const env = require("dotenv")
@@ -29,7 +31,6 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     app.use(express.urlencoded({extended: true}));
     app.use(express.static('public'));
 
-    app.use(cookieParser());
     const store = new MongoDBStore({
         uri: process.env.MONGODB_URI,
         collection: 'sessions',
@@ -40,6 +41,13 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
         saveUninitialized: false,
         store: store
     }));
+    app.use(cookieParser());
+    // CSRF must go after session. For all post forms should be hidden type
+    const {csrfSynchronisedProtection} = csrfSync({
+        getTokenFromRequest: (req) => req.body["CSRFToken"],
+    });
+    app.use(csrfSynchronisedProtection);
+
 
     app.use((req, res, next) => {
         if (req.session.user) {
@@ -53,6 +61,13 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
         } else {
             next();
         }
+    });
+
+    // Assign local variables for views
+    app.use((req, res, next) => {
+        res.locals.isAuthenticated = req.session.isAuthenticated;
+        res.locals.csrfToken = req.csrfToken();
+        next();
     });
 
     app.use(authRouter);
