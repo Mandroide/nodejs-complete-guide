@@ -1,4 +1,6 @@
 const express = require('express');
+const session = require('express-session');
+const MongoDBStore = require('connect-mongodb-session')(session);
 const mongoose = require('mongoose');
 const adminRouter = require('./routes/admin');
 const shopRouter = require('./routes/shop');
@@ -28,33 +30,11 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     app.use(express.static('public'));
 
     app.use(cookieParser());
-
-    app.use((req, res, next) => {
-        req.isAuthenticated = req.cookies.isAuthenticated === "true";
-        next();
-    });
-
-    app.use((req, res, next) => {
-        User.findOne().then((user) => {
-            if (!user) {
-                const user = new User({
-                    name: 'NodeJS',
-                    email: 'nodejs@gmail.com',
-                    cart: {
-                        items: []
-                    }
-                });
-                return user.save();
-            } else {
-                return user;
-            }
-        }).then((user) => {
-            req.user = user;
-        }).then(() => next())
-            .catch(err => {
-                console.log(err);
-            });
-    });
+    const store = new MongoDBStore({
+        uri: process.env.MONGODB_URI,
+        collection: 'sessions',
+    })
+    app.use(session({secret: process.env.SESSION_SESSION_SECRET, resave: false, saveUninitialized: false, store: store}));
 
     app.use(authRouter);
 

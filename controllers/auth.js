@@ -1,13 +1,32 @@
+const User = require("../models/User");
 exports.getLogin = (req, res) => {
     res.render('auth/login', {
         path: '/login',
         pageTitle: 'Login',
-        isAuthenticated: req.isAuthenticated
+        isAuthenticated: req.session.isAuthenticated
     });
 };
 
 exports.postLogin = (req, res) => {
-    res.cookie("isAuthenticated", true);
+    req.session.isAuthenticated = true;
     res.cookie("Max-Age", 10);
-    res.redirect('/');
+    User.findOne().then((user) => {
+        if (!user) {
+            const user = new User({
+                name: 'NodeJS',
+                email: 'nodejs@gmail.com',
+                cart: {
+                    items: []
+                }
+            });
+            return user.save();
+        } else {
+            return user;
+        }
+    }).then((user) => {
+        req.session.user = user;
+    }).then(() => res.redirect('/'))
+        .catch(err => {
+            console.log(err);
+        });
 };
