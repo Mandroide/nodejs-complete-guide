@@ -34,7 +34,26 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
         uri: process.env.MONGODB_URI,
         collection: 'sessions',
     })
-    app.use(session({secret: process.env.SESSION_SESSION_SECRET, resave: false, saveUninitialized: false, store: store}));
+    app.use(session({
+        secret: process.env.SESSION_SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: store
+    }));
+
+    app.use((req, res, next) => {
+        if (req.session.user) {
+            User.findOne(req.session.user._id)
+                .then((user) => {
+                    req.user = user;
+                }).then(() => next())
+                .catch(err => {
+                    console.log(err);
+                });
+        } else {
+            next();
+        }
+    });
 
     app.use(authRouter);
 

@@ -8,8 +8,6 @@ exports.getLogin = (req, res) => {
 };
 
 exports.postLogin = (req, res) => {
-    req.session.isAuthenticated = true;
-    res.cookie("Max-Age", 10);
     User.findOne().then((user) => {
         if (!user) {
             const user = new User({
@@ -24,7 +22,10 @@ exports.postLogin = (req, res) => {
             return user;
         }
     }).then((user) => {
+        req.session.isAuthenticated = true;
+        res.cookie("Max-Age", 10);
         req.session.user = user;
+        return req.session.save();
     }).then(() => res.redirect('/'))
         .catch(err => {
             console.log(err);
