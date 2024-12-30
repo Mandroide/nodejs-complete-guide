@@ -2,9 +2,12 @@ const bcrypt = require('bcryptjs')
 const User = require("../models/User");
 
 exports.getLogin = (req, res) => {
+    let errorMessage = req.flash('error');
+    errorMessage = (errorMessage.length > 0) ? errorMessage[0] : null;
     res.render('auth/login', {
         path: '/login',
-        pageTitle: 'Login'
+        pageTitle: 'Login',
+        errorMessage: errorMessage
     });
 };
 
@@ -22,6 +25,7 @@ exports.postLogin = (req, res) => {
                                 return res.redirect('/')
                             });
                         } else {
+                            req.flash('error', 'Invalid Credentials');
                             return res.redirect('/login');
                         }
                     }).catch(err => {
@@ -29,6 +33,7 @@ exports.postLogin = (req, res) => {
                     res.redirect('/login');
                 });
             } else {
+                req.flash('error', 'Invalid Credentials');
                 return res.redirect('/login');
             }
         }).catch(err => {
@@ -37,9 +42,12 @@ exports.postLogin = (req, res) => {
 };
 
 exports.getSignup = (req, res) => {
+    let errorMessage = req.flash('error');
+    errorMessage = (errorMessage.length > 0) ? errorMessage[0] : null;
     res.render('auth/signup', {
         path: '/signup',
-        pageTitle: 'Signup'
+        pageTitle: 'Signup',
+        errorMessage: errorMessage
     });
 };
 
@@ -51,6 +59,7 @@ exports.postSignup = (req, res) => {
         User.findOne({email: email})
             .then((user) => {
                 if (user) {
+                    req.flash('error', 'E-Mail exists already, please pick a different one.');
                     return res.redirect('/signup');
                 } else {
                     return bcrypt.hash(req.body.password, 12).then((hashedPassword) => {

@@ -8,6 +8,7 @@ const authRouter = require('./routes/auth');
 const cookieParser = require("cookie-parser");
 /** CSRF-CSRF PACKAGE */
 const {csrfSync} = require('csrf-sync');
+const connectFlash = require('connect-flash');
 const errorController = require('./controllers/error');
 const User = require('./models/User');
 const env = require("dotenv")
@@ -47,6 +48,7 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
         getTokenFromRequest: (req) => req.body["CSRFToken"],
     });
     app.use(csrfSynchronisedProtection);
+    app.use(connectFlash());
 
 
     app.use((req, res, next) => {
