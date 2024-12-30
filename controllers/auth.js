@@ -1,5 +1,17 @@
 const bcrypt = require('bcryptjs')
+const nodemailer = require('nodemailer');
+const mailgunTransport = require('nodemailer-mailgun-transport');
 const User = require("../models/User");
+const env = require("dotenv")
+
+env.config();
+
+const transporter = nodemailer.createTransport(mailgunTransport({
+    auth: {
+        apiKey: process.env.MAILGUN_API_KEY,
+        domain: process.env.MAILGUN_DOMAIN,
+    }
+}))
 
 exports.getLogin = (req, res) => {
     let errorMessage = req.flash('error');
@@ -70,8 +82,20 @@ exports.postSignup = (req, res) => {
                         })
                         return user.save();
                     }).then(() => {
-                        res.redirect('/login')
-                    });
+                        res.redirect('/login');
+                        return transporter.sendMail({
+                            from: `mailgun@${process.env.MAILGUN_DOMAIN}`,
+                            to: email,
+                            subject: 'Sign up',
+                            html: '<h1>You successfully signed up!</h1>'
+                        }, function(error, response) {
+                            if (error) {
+                                console.log(error)
+                            } else {
+                                console.log("Successfully sent email.")
+                            }
+                        });
+                    }).catch(err => console.log(err));
                 }
             })
             .catch(err => console.log(err));
