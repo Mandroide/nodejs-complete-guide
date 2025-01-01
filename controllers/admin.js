@@ -10,7 +10,10 @@ exports.getAddProduct = (req, res) => {
     res.render('admin/edit-product', {
         pageTitle: 'Add Product',
         path: '/admin/add-product',
-        editing: false
+        editing: false,
+        hasError: false,
+        errorMessage: null,
+        validationErrors: []
     });
 };
 
@@ -45,7 +48,10 @@ exports.getEditProduct = (req, res) => {
                     pageTitle: 'Edit Product',
                     path: '/admin/edit-product',
                     product: product,
-                    editing: editMode
+                    editing: editMode,
+                    hasError: false,
+                    errorMessage: null,
+                    validationErrors: []
                 });
             }
         }).catch(err => {

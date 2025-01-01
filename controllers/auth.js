@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs')
+const {validationResult} = require('express-validator')
 const nodemailer = require('nodemailer');
 const mailgunTransport = require('nodemailer-mailgun-transport');
 const User = require("../models/User");
@@ -20,15 +21,19 @@ exports.getLogin = (req, res) => {
     res.render('auth/login', {
         path: '/login',
         pageTitle: 'Login',
-        errorMessage: errorMessage
+        errorMessage: errorMessage,
+        oldInput: {email: req.flash("email"), password: req.flash("password")},
+        validationErrors: []
     });
 };
 
 exports.postLogin = (req, res) => {
-    User.findOne({email: req.body.email})
+    const email = req.body.email;
+    const password = req.body.password;
+    User.findOne({email: email})
         .then((user) => {
             if (user) {
-                bcrypt.compare(req.body.password, user.password)
+                bcrypt.compare(password, user.password)
                     .then(doMatch => {
                         if (doMatch) {
                             req.session.isAuthenticated = true;
@@ -39,6 +44,8 @@ exports.postLogin = (req, res) => {
                             });
                         } else {
                             req.flash('error', 'Invalid Credentials');
+                            req.flash("email", email);
+                            req.flash("password", password);
                             return res.redirect('/login');
                         }
                     }).catch(err => {
@@ -47,6 +54,8 @@ exports.postLogin = (req, res) => {
                 });
             } else {
                 req.flash('error', 'Invalid Credentials');
+                req.flash("email", email);
+                req.flash("password", password);
                 return res.redirect('/login');
             }
         }).catch(err => {
@@ -60,50 +69,49 @@ exports.getSignup = (req, res) => {
     res.render('auth/signup', {
         path: '/signup',
         pageTitle: 'Signup',
-        errorMessage: errorMessage
+        errorMessage: errorMessage,
+        oldInput: {
+            email: '',
+            password: '',
+            confirmPassword: ''
+        },
+        validationErrors: []
     });
 };
 
 exports.postSignup = (req, res) => {
     const email = req.body.email;
-    const password = req.body.password;
-    const confirmPassword = req.body.confirmPassword;
-    if (password === confirmPassword) {
-        User.findOne({email: email})
-            .then((user) => {
-                if (user) {
-                    req.flash('error', 'E-Mail exists already, please pick a different one.');
-                    return res.redirect('/signup');
-                } else {
-                    return bcrypt.hash(req.body.password, 12).then((hashedPassword) => {
-                        const user = new User({
-                            email: email,
-                            password: hashedPassword,
-                            cart: {items: []}
-                        })
-                        return user.save();
-                    }).then(() => {
-                        res.redirect('/login');
-                        return transporter.sendMail({
-                            from: `mailgun@${process.env.MAILGUN_DOMAIN}`,
-                            to: email,
-                            subject: 'Sign up',
-                            html: '<h1>You successfully signed up!</h1>'
-                        }, function (error, response) {
-                            if (error) {
-                                console.log(error)
-                            } else {
-                                console.log("Successfully sent email.")
-                            }
-                        });
-                    }).catch(err => console.log(err));
-                }
-            })
-            .catch(err => console.log(err));
-    } else {
-        req.flash('error', 'Passwords do not match.');
-        res.redirect('/signup');
-    }
+    User.findOne({email: email})
+        .then((user) => {
+            if (user) {
+                req.flash('error', 'E-Mail exists already, please pick a different one.');
+                return res.redirect('/signup');
+            } else {
+                return bcrypt.hash(req.body.password, 12).then((hashedPassword) => {
+                    const user = new User({
+                        email: email,
+                        password: hashedPassword,
+                        cart: {items: []}
+                    })
+                    return user.save();
+                }).then(() => {
+                    res.redirect('/login');
+                    return transporter.sendMail({
+                        from: `mailgun@${process.env.MAILGUN_DOMAIN}`,
+                        to: email,
+                        subject: 'Sign up',
+                        html: '<h1>You successfully signed up!</h1>'
+                    }, function (error, response) {
+                        if (error) {
+                            console.log(error)
+                        } else {
+                            console.log("Successfully sent email.")
+                        }
+                    });
+                }).catch(err => console.log(err));
+            }
+        })
+        .catch(err => console.log(err));
 
 };
 

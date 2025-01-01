@@ -10,13 +10,13 @@ router.get('/products', shopController.getProducts)
 
 router.get('/products/:productId', shopController.getProduct)
 
-router.get('/cart', isAuth, shopController.getCart)
-router.post('/cart', isAuth, shopController.postCart)
+router.get('/cart', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getCart)
+router.post('/cart', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.postCart)
 
-router.post('/cart-delete-item', isAuth, shopController.postCartDelete)
+router.post('/cart-delete-item', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.postCartDelete)
 
-router.get('/orders', isAuth, shopController.getOrders)
+router.get('/orders', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getOrders)
 
-router.post('/create-order', isAuth, shopController.postOrder)
+router.post('/create-order', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.postOrder)
 
 module.exports = router;
