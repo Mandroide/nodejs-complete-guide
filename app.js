@@ -49,27 +49,28 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     });
     app.use(csrfSynchronisedProtection);
     app.use(connectFlash());
-
-
-    app.use((req, res, next) => {
-        if (req.session.user) {
-            User.findOne(req.session.user._id)
-                .then((user) => {
-                    req.user = user;
-                }).then(() => next())
-                .catch(err => {
-                    console.log(err);
-                });
-        } else {
-            next();
-        }
-    });
-
     // Assign local variables for views
     app.use((req, res, next) => {
         res.locals.isAuthenticated = req.session.isAuthenticated;
         res.locals.csrfToken = req.csrfToken();
         next();
+    });
+
+    app.use((req, res, next) => {
+        if (req.session.user) {
+            User.findOne(req.session.user._id)
+                .then((user) => {
+                    if (user) {
+                        req.user = user;
+                    }
+                }).then(() => next())
+                .catch((err) => {
+                    err.httpStatus = 500;
+                    return next(err);
+                });
+        } else {
+            next();
+        }
     });
 
     app.use(authRouter);
@@ -78,7 +79,13 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
 
     app.use('/admin', adminRouter);
 
+    app.use('/500', errorController.get500);
+
     app.use(errorController.getNotFound);
+
+    app.use((err, req, res, next) => {
+        errorController.get500(req, res);
+    })
     app.listen(8080);
 }).catch(err => {
     console.log(err);

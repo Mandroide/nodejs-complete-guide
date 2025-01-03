@@ -5,6 +5,11 @@
 <body>
 <%- include('../includes/navigation.ejs') %>
 <main>
+    <% if (errorMessage) { %>
+        <div class="user-message user-message--error">
+            <%= errorMessage %>
+        </div>
+    <% } %>
     <% if (products.length > 0) { %>
         <div class="grid">
             <% for (const product of products) { %>

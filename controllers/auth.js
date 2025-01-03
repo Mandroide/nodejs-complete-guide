@@ -27,7 +27,7 @@ exports.getLogin = (req, res) => {
     });
 };
 
-exports.postLogin = (req, res) => {
+exports.postLogin = (req, res, next) => {
     const email = req.body.email;
     const password = req.body.password;
     User.findOne({email: email})
@@ -58,8 +58,9 @@ exports.postLogin = (req, res) => {
                 req.flash("password", password);
                 return res.redirect('/login');
             }
-        }).catch(err => {
-        console.log(err);
+        }).catch((err) => {
+        err.httpStatus = 500;
+        return next(err);
     });
 };
 
@@ -79,7 +80,7 @@ exports.getSignup = (req, res) => {
     });
 };
 
-exports.postSignup = (req, res) => {
+exports.postSignup = (req, res, next) => {
     const email = req.body.email;
     User.findOne({email: email})
         .then((user) => {
@@ -111,7 +112,10 @@ exports.postSignup = (req, res) => {
                 }).catch(err => console.log(err));
             }
         })
-        .catch(err => console.log(err));
+        .catch((err) => {
+            err.httpStatus = 500;
+            return next(err);
+        });
 
 };
 
@@ -132,7 +136,7 @@ exports.getReset = (req, res) => {
     });
 }
 
-exports.postReset = (req, res) => {
+exports.postReset = (req, res, next) => {
     crypto.randomBytes(32, (err, buf) => {
         if (err) {
             console.log(err);
@@ -163,7 +167,10 @@ exports.postReset = (req, res) => {
                         console.log("Successfully sent email.")
                     }
                 });
-            }).catch(err => console.log(err));
+            }).catch((err) => {
+                err.httpStatus = 500;
+                return next(err);
+            });
         }
     })
     let errorMessage = req.flash('error');
@@ -175,7 +182,7 @@ exports.postReset = (req, res) => {
     });
 }
 
-exports.getNewPassword = (req, res) => {
+exports.getNewPassword = (req, res, next) => {
     const token = req.params.token;
     User.findOne({resetToken: token, resetTokenExpiration: {$gt: Date.now()}})
         .then((user) => {
@@ -188,11 +195,14 @@ exports.getNewPassword = (req, res) => {
                 userId: user._id.toString(),
                 passwordToken: token
             });
-        }).catch(err => console.log(err));
+        }).catch((err) => {
+        err.httpStatus = 500;
+        return next(err);
+    });
 
 
 }
-exports.postNewPassword = (req, res) => {
+exports.postNewPassword = (req, res, next) => {
     const newPassword = req.body.password;
     const confirmPassword = req.body.confirmPassword;
 
@@ -211,7 +221,10 @@ exports.postNewPassword = (req, res) => {
                 resetUser.resetTokenExpiration = undefined;
                 return resetUser.save();
             }).then(() => res.redirect('/login'))
-            .catch(err => console.log(err));
+            .catch((err) => {
+                err.httpStatus = 500;
+                return next(err);
+            });
     } else {
         req.flash('error', 'Passwords do not match.');
         res.redirect('/new-password');

@@ -4,3 +4,11 @@ exports.getNotFound = (req, res) => {
         pageTitle: "Page Not Found"
     });
 }
+
+exports.get500 = (req, res) => {
+    res.status(500).render("500", {
+        path: "/500",
+        pageTitle: "Internal Server Error",
+        isAuthenticated: req.session.isAuthenticated
+    });
+}

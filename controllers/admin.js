@@ -17,7 +17,7 @@ exports.getAddProduct = (req, res) => {
     });
 };
 
-exports.postAddProduct = (req, res) => {
+exports.postAddProduct = (req, res, next) => {
     const product = new Product(
         {
             title: req.body.title,
@@ -29,12 +29,28 @@ exports.postAddProduct = (req, res) => {
     product.save().then(() => {
         res.redirect('/');
     }).catch((err) => {
-        console.log(err);
+        err.httpStatus = 500;
+        return next(err);
+        // res.redirect('/500');
+        // return res.status(500).render('admin/edit-product', {
+        //     pageTitle: 'Add Product',
+        //     path: '/admin/add-product',
+        //     editing: false,
+        //     hasError: true,
+        //     errorMessage: 'Database operation failed, please try again.',
+        //     product: {
+        //         title: req.body.title,
+        //         price: req.body.price,
+        //         description: req.body.description,
+        //         imageUrl: req.body.imageUrl
+        //     },
+        //     validationErrors: []
+        // });
     })
 
 }
 
-exports.getEditProduct = (req, res) => {
+exports.getEditProduct = (req, res, next) => {
     const editMode = req.query.edit === "true";
     if (!editMode) {
         res.redirect('/');
@@ -42,7 +58,8 @@ exports.getEditProduct = (req, res) => {
         const productId = req.params.productId;
         Product.findById(productId).then(product => {
             if (!product) {
-                res.redirect('/');
+                req.flash('error', 'Product not found!');
+                res.redirect('/admin/products');
             } else {
                 res.render('admin/edit-product', {
                     pageTitle: 'Edit Product',
@@ -55,12 +72,13 @@ exports.getEditProduct = (req, res) => {
                 });
             }
         }).catch(err => {
-            console.log(err);
+            err.httpStatus = 500;
+            return next(err);
         });
     }
 };
 
-exports.postEditProduct = (req, res) => {
+exports.postEditProduct = (req, res, next) => {
     Product.findById(req.body.id)
         .then(product => {
             if (product.userId.toString() === req.user.toString()) {
@@ -73,29 +91,35 @@ exports.postEditProduct = (req, res) => {
                 return res.redirect('/');
             }
         }).catch((err) => {
-        console.log(err);
+        err.httpStatus = 500;
+        return next(err);
     });
 };
 
-exports.getProducts = (req, res) => {
+exports.getProducts = (req, res, next) => {
     Product.find({userId: req.user._id})
         // .select('title  price -_id')
         // .populate('userId', 'name')
         .then((products) => {
+            let errorMessage = req.flash('error');
+            errorMessage = (errorMessage.length > 0) ? errorMessage[0] : null;
             res.render('admin/product-list', {
                 products: products,
                 pageTitle: 'Admin Products',
-                path: '/admin/products'
+                path: '/admin/products',
+                errorMessage: errorMessage,
             });
         }).catch((err) => {
-        console.log(err);
+        err.httpStatus = 500;
+        return next(err);
     });
 }
 
-exports.postDeleteProduct = (req, res) => {
+exports.postDeleteProduct = (req, res, next) => {
     const productId = req.body.id;
     Product.deleteOne({_id: productId, userId: req.user._id})
         .then(() => res.redirect('/admin/products')).catch((err) => {
-        console.log(err);
+        err.httpStatus = 500;
+        return next(err);
     });
 };
