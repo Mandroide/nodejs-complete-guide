@@ -10,7 +10,7 @@ const {validationResult} = require('express-validator')
 
 module.exports.rejectIfCurrentClientIsNotLoggedIn = (request, response, next) => {
     const {session: {isAuthenticated}} = request;
-    if (!isAuthenticated) return response.redirect(`/auth/signIn`);
+    if (!isAuthenticated) return response.redirect(`/login`);
 
     next();
 }

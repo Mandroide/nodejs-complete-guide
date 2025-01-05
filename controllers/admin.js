@@ -18,16 +18,17 @@ exports.getAddProduct = (req, res) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
+    const imageUrl = req.file.path.replace(/\\/g, '/');
     const product = new Product(
         {
             title: req.body.title,
             price: req.body.price,
             description: req.body.description,
-            imageUrl: req.body.imageUrl,
+            imageUrl: imageUrl,
             userId: req.user,
         });
     product.save().then(() => {
-        res.redirect('/');
+        res.redirect('/admin/products');
     }).catch((err) => {
         err.httpStatus = 500;
         return next(err);
@@ -85,7 +86,9 @@ exports.postEditProduct = (req, res, next) => {
                 product.title = req.body.title;
                 product.price = +req.body.price;
                 product.description = req.body.description;
-                product.imageUrl = req.body.imageUrl;
+                if (req.file) {
+                    product.imageUrl = req.file.path;
+                }
                 return product.save().then(() => res.redirect('/admin/products'))
             } else {
                 return res.redirect('/');

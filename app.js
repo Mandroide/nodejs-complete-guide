@@ -6,6 +6,7 @@ const adminRouter = require('./routes/admin');
 const shopRouter = require('./routes/shop');
 const authRouter = require('./routes/auth');
 const cookieParser = require("cookie-parser");
+const multer = require("multer");
 /** CSRF-CSRF PACKAGE */
 const {csrfSync} = require('csrf-sync');
 const connectFlash = require('connect-flash');
@@ -30,7 +31,23 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     app.set('views', 'views');
 
     app.use(express.urlencoded({extended: true}));
+    const fileStorage = multer.diskStorage({
+        destination: (req, file, callback) => {
+            callback(null, 'images');
+        },
+        filename: (req, file, callback) => {
+            callback(null, Date.now() + '-' + file.originalname);
+        }
+    });
+
+    const fileFilter = (req, file, callback) => {
+        callback(null, ['image/png', 'image/jpg', 'image/jpeg'].includes(file.mimetype));
+    }
+    app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single("image"));
     app.use(express.static('public'));
+    // Alternative to render
+    // app.use('/images', express.static('images'));
+    app.use(express.static('images'));
 
     const store = new MongoDBStore({
         uri: process.env.MONGODB_URI,

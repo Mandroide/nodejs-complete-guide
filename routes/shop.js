@@ -17,6 +17,8 @@ router.post('/cart-delete-item', isAuth.rejectIfCurrentClientIsNotLoggedIn, shop
 
 router.get('/orders', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getOrders)
 
+router.get('/orders/:orderId', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getInvoice)
+
 router.post('/create-order', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.postOrder)
 
 module.exports = router;

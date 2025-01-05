@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
     }
 );
 userSchema.methods.addToCart = function (product) {
-    const cartProductIndex = this.cart.items.findIndex(cp => cp.id.toString() === product._id.toString());
+    const cartProductIndex = this.cart.items.findIndex(item => item.productId.toString() === product._id.toString());
 
     const updatedCartItems = [...this.cart.items];
     if (cartProductIndex >= 0) {
@@ -36,7 +36,7 @@ userSchema.methods.addToCart = function (product) {
 }
 
 userSchema.methods.removeFromCart = function (productId) {
-    this.cart.items = this.cart.items.filter(cp => cp.id.toString() !== productId.toString());
+    this.cart.items = this.cart.items.filter(item => item.productId.toString() !== productId.toString());
     return this.save();
 }
 

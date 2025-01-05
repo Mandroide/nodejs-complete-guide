@@ -1,5 +1,8 @@
 const Product = require("../models/Product");
 const Order = require("../models/Order");
+const fs = require('fs');
+const path = require('path');
+const PDFDocument = require('pdfkit')
 
 exports.getProducts = (req, res, next) => {
     Product.find().then((products) => {
@@ -115,3 +118,96 @@ exports.getOrders = (req, res, next) => {
         });
 
 };
+
+exports.getInvoice = (req, res, next) => {
+    const orderId = req.params.orderId;
+    Order.findById(orderId).then((order) => {
+        if (!order) {
+            return next(new Error('Order Not Found'));
+        }
+        if (order.user.userId.toString() !== req.user._id.toString()) {
+            return next(new Error('Unauthorized'));
+        }
+        const invoiceName = 'Amazon.pdf';
+        const invoicePath = path.join('data', 'invoices', invoiceName);
+        const invoiceNumber = order._id;
+        const customerEmail = order.user.email;
+        const invoiceDate = order.createdAt;
+        const pdfDoc = new PDFDocument();
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="${invoiceName}"`);
+        pdfDoc.pipe(fs.createWriteStream(invoicePath));
+        pdfDoc.pipe(res);
+
+        // Table headers
+        const nameX = 50;
+        const quantityX = 300;
+        const priceX = 400;
+        let y = 100;
+
+        pdfDoc.fontSize(24).text('Invoice', nameX, y, { align: 'left' });
+        y += 20;
+        pdfDoc
+            .fontSize(14)
+            .text(
+                '-------------------------------------------------------------------------------------',
+                nameX,
+                y,
+                {
+                    align: 'left',
+                }
+            );
+        y += 20;
+        pdfDoc.fontSize(12).text('Invoice# ' + invoiceNumber, nameX, y);
+        y += 20;
+        pdfDoc.fontSize(12).text('from ' + moment(invoiceDate).format('MMM Do YYYY'));
+        y = 180;
+        pdfDoc.fontSize(12).text('Customer: ' + customerEmail, nameX, y);
+        y += 20;
+        pdfDoc
+            .fontSize(14)
+            .text(
+                '-------------------------------------------------------------------------------------',
+                nameX,
+                y,
+                {
+                    align: 'left',
+                }
+            );
+        y += 20;
+        pdfDoc.fontSize(12).text('Item', nameX, y, { underline: true });
+        pdfDoc.text('Quantity', quantityX, y, { underline: true });
+        pdfDoc.text('Price', priceX, y, { underline: true });
+        y += 20;
+        // Table rows
+        let totalPrice = 0;
+        order.items.forEach((item) => {
+            totalPrice += item.quantity * item.product.price;
+            pdfDoc.fontSize(10).text(item.product.name, nameX, y);
+            pdfDoc.text(item.quantity, quantityX, y);
+            pdfDoc.text(`$${item.product.price}`, priceX, y);
+            y += 10; // Moving to next line
+        });
+
+        y += 10;
+
+        pdfDoc
+            .fontSize(14)
+            .text(
+                '-------------------------------------------------------------------------------------',
+                nameX,
+                y,
+                {
+                    align: 'left',
+                }
+            );
+        y += 20;
+        pdfDoc.fontSize(16).text('Total Price: $' + totalPrice, nameX, y, { align: 'left' });
+
+        pdfDoc.end();
+        // res.sendFile(invoicePath);
+    }).catch((err) => {
+        next(err);
+    })
+
+}

@@ -11,24 +11,24 @@
             <%= errorMessage %>
         </div>
     <% } %>
-    <form class="product-form" action="/admin/<%= editing ? 'edit' : 'add' %>-product" method="post">
+    <form class="product-form" action="/admin/<%= editing ? 'edit' : 'add' %>-product" method="post" enctype="multipart/form-data">
         <div class="form-control">
             <label for="title">Title</label>
-            <input class="<%= validationErrors.find(e => e.param === 'title') ? 'invalid': ''%>" type="text" name="title" id="title" value="<%= editing || hasError ? product.title : '' %>" placeholder="Title"
+            <input class="<%= validationErrors.find(e => e.path === 'title') ? 'invalid': ''%>" type="text" name="title" id="title" value="<%= editing || hasError ? product.title : '' %>" placeholder="Title"
                    required>
         </div>
         <div class="form-control">
-            <label for="imageUrl">Image URL</label>
-            <input class="<%= validationErrors.find(e => e.param === 'imageUrl') ? 'invalid': ''%>" type="url" name="imageUrl" id="imageUrl" value="<%= editing || hasError ? product.imageUrl : '' %>" required>
+            <label for="image">Image</label>
+            <input type="file" name="image" id="image" class="<%= validationErrors.find(e => e.path === 'image') ? 'invalid': ''%>">
         </div>
         <div class="form-control">
             <label for="price">Price</label>
-            <input class="<%= validationErrors.find(e => e.param === 'price') ? 'invalid': ''%>" type="number" name="price" id="price" step="0.01" min="0" value="<%= editing || hasError ? product.price : '' %>"
+            <input class="<%= validationErrors.find(e => e.path === 'price') ? 'invalid': ''%>" type="number" name="price" id="price" step="0.01" min="0" value="<%= editing || hasError ? product.price : '' %>"
                    required>
         </div>
         <div class="form-control">
             <label for="description">Description</label>
-            <textarea class="<%= validationErrors.find(e => e.param === 'description') ? 'invalid': ''%>" name="description" id="description" rows="5"
+            <textarea class="<%= validationErrors.find(e => e.path === 'description') ? 'invalid': ''%>" name="description" id="description" rows="5"
                       required><%= editing || hasError ? product.description : '' %></textarea>
         </div>
         <% if (editing) { %>

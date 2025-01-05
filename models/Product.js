@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
+const User = require('../models/User');
 
-module.exports = mongoose.model('Product', new mongoose.Schema({
+const productSchema = mongoose.model('Product', new mongoose.Schema({
     title: {
         type: String,
         required: true
@@ -23,3 +24,20 @@ module.exports = mongoose.model('Product', new mongoose.Schema({
         required: true
     }
 }));
+
+productSchema.pre('deleteOne', function (next, req) {
+    User.update({}, {
+        $pull: {
+            'cart.items': {
+                product: this._conditions._id
+            }
+        }
+    }, {
+        multi: true
+    })
+        .then(() => {
+            next();
+        })
+});
+
+module.exports = productSchema;
