@@ -6,6 +6,8 @@ TODO 2024-12-30 Change getEditProducts to redirect to admin products with a flas
  that is passed into getEditProduct so we eliminate any chance of users reaching the getEdit route when they are not
  supposed to(not by clicking on the edit button of a admin product)
  */
+
+const ITEMS_PER_PAGE = 2;
 exports.getAddProduct = (req, res) => {
     res.render('admin/edit-product', {
         pageTitle: 'Add Product',
@@ -100,19 +102,31 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-    Product.find({userId: req.user._id})
-        // .select('title  price -_id')
-        // .populate('userId', 'name')
-        .then((products) => {
-            let errorMessage = req.flash('error');
-            errorMessage = (errorMessage.length > 0) ? errorMessage[0] : null;
-            res.render('admin/product-list', {
-                products: products,
-                pageTitle: 'Admin Products',
-                path: '/admin/products',
-                errorMessage: errorMessage,
-            });
-        }).catch((err) => {
+    const page = +req.query.page ?? 1;
+    let totalItems;
+    Product.find({userId: req.user._id}).estimatedDocumentCount().then(numDocuments => {
+        totalItems = numDocuments;
+        return Product.find()
+            // .select('title  price -_id')
+            // .populate('userId', 'name')
+            .skip((page - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE)
+    }).then((products) => {
+        let errorMessage = req.flash('error');
+        errorMessage = (errorMessage.length > 0) ? errorMessage[0] : null;
+        res.render('admin/product-list', {
+            products: products,
+            pageTitle: 'Admin Products',
+            path: '/admin/products',
+            errorMessage: errorMessage,
+            currentPage: page,
+            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            hasPreviousPage: page > 1,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+        });
+    }).catch((err) => {
         err.httpStatus = 500;
         return next(err);
     });

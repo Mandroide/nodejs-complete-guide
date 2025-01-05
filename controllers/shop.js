@@ -4,18 +4,32 @@ const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit')
 
+const ITEMS_PER_PAGE = 2;
+
 exports.getProducts = (req, res, next) => {
-    Product.find().then((products) => {
+    const page = +req.query.page ?? 1;
+    let totalItems;
+    Product.find().estimatedDocumentCount().then(numDocuments => {
+        totalItems = numDocuments;
+        return Product.find()
+            .skip((page - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE)
+    }).then((products) => {
         res.render('shop/product-list', {
             products: products,
             pageTitle: 'All Products',
-            path: '/products'
-        });
+            path: '/products',
+            currentPage: page,
+            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            hasPreviousPage: page > 1,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+        })
     }).catch((err) => {
         err.httpStatus = 500;
         return next(err);
     });
-
 }
 
 exports.getProduct = (req, res, next) => {
@@ -34,11 +48,24 @@ exports.getProduct = (req, res, next) => {
 }
 
 exports.getIndex = (req, res, next) => {
-    Product.find().then((products) => {
+    const page = +req.query.page ?? 1;
+    let totalItems;
+    Product.find().estimatedDocumentCount().then(numDocuments => {
+        totalItems = numDocuments;
+        return Product.find()
+            .skip((page - 1) * ITEMS_PER_PAGE)
+            .limit(ITEMS_PER_PAGE)
+    }).then((products) => {
         res.render('shop/index', {
             products: products,
             pageTitle: 'Shop',
-            path: '/'
+            path: '/',
+            currentPage: page,
+            hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+            hasPreviousPage: page > 1,
+            nextPage: page + 1,
+            previousPage: page - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
         })
     }).catch((err) => {
         err.httpStatus = 500;
@@ -145,7 +172,7 @@ exports.getInvoice = (req, res, next) => {
         const priceX = 400;
         let y = 100;
 
-        pdfDoc.fontSize(24).text('Invoice', nameX, y, { align: 'left' });
+        pdfDoc.fontSize(24).text('Invoice', nameX, y, {align: 'left'});
         y += 20;
         pdfDoc
             .fontSize(14)
@@ -175,9 +202,9 @@ exports.getInvoice = (req, res, next) => {
                 }
             );
         y += 20;
-        pdfDoc.fontSize(12).text('Item', nameX, y, { underline: true });
-        pdfDoc.text('Quantity', quantityX, y, { underline: true });
-        pdfDoc.text('Price', priceX, y, { underline: true });
+        pdfDoc.fontSize(12).text('Item', nameX, y, {underline: true});
+        pdfDoc.text('Quantity', quantityX, y, {underline: true});
+        pdfDoc.text('Price', priceX, y, {underline: true});
         y += 20;
         // Table rows
         let totalPrice = 0;
@@ -202,7 +229,7 @@ exports.getInvoice = (req, res, next) => {
                 }
             );
         y += 20;
-        pdfDoc.fontSize(16).text('Total Price: $' + totalPrice, nameX, y, { align: 'left' });
+        pdfDoc.fontSize(16).text('Total Price: $' + totalPrice, nameX, y, {align: 'left'});
 
         pdfDoc.end();
         // res.sendFile(invoicePath);
