@@ -62,7 +62,7 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     app.use(cookieParser());
     // CSRF must go after session. For all post forms should be hidden type
     const {csrfSynchronisedProtection} = csrfSync({
-        getTokenFromRequest: (req) => req.body["CSRFToken"],
+        getTokenFromRequest: (req) => req.body["CSRFToken"] ?? req.headers["x-csrf-token"],
     });
     app.use(csrfSynchronisedProtection);
     app.use(connectFlash());

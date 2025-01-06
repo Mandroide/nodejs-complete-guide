@@ -15,10 +15,12 @@ router.post('/cart', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.p
 
 router.post('/cart-delete-item', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.postCartDelete)
 
+router.get('/checkout', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getCheckout)
+router.get('/checkout/success', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getCheckoutSuccess);
+router.get('/checkout/cancel', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getCheckout);
+
 router.get('/orders', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getOrders)
 
 router.get('/orders/:orderId', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.getInvoice)
-
-router.post('/create-order', isAuth.rejectIfCurrentClientIsNotLoggedIn, shopController.postOrder)
 
 module.exports = router;

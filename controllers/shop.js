@@ -2,7 +2,12 @@ const Product = require("../models/Product");
 const Order = require("../models/Order");
 const fs = require('fs');
 const path = require('path');
+const env = require("dotenv")
+
+env.config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const PDFDocument = require('pdfkit')
+
 
 const ITEMS_PER_PAGE = 2;
 
@@ -109,6 +114,92 @@ exports.postCartDelete = (req, res, next) => {
     });
 }
 
+exports.getCheckout = (req, res, next) => {
+    let products;
+    let total = 0;
+    req.user
+        .populate('cart.items.productId')
+        // .execPopulate()
+        .then((user) => {
+            products = user.cart.items
+            total = products.reduce((acc, product) => acc + product.quantity * product.productId.price, 0)
+            return stripe.checkout.sessions.create({
+                payment_method_types: ['card'],
+                line_items: products.map(p => {
+                    return {
+                        price_data: {
+                            currency: "usd",
+                            unit_amount: parseInt(Math.ceil(p.productId.price * 100)),
+                            product_data: {
+                                name: p.productId.title,
+                                description: p.productId.description,
+                            },
+                        },
+                        quantity: p.quantity,
+                    }
+                }),
+                mode: "payment",
+
+                success_url: `${req.protocol}://${req.get("host")}/checkout/success`,// => http://localhost:3000,
+
+                cancel_url: `${req.protocol}://${req.get("host")}/checkout/cancel`,
+            });
+        })
+        .then((session) => {
+            res.render("shop/checkout", {
+                pageTitle: "Checkout",
+                path: "/checkout",
+                products: products,
+                totalSum: total.toFixed(2),
+                sessionId: session.id,
+            });
+
+        })
+
+        .catch((err) => {
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
+        });
+};
+
+exports.getCheckoutSuccess = (req, res, next) => {
+    req.user
+        .populate('cart.items.productId')
+        // .execPopulate()
+        .then(user => {
+            const products = user.cart.items.map(i => {
+                return { quantity: i.quantity, product: { ...i.productId._doc } };
+            });
+            const order = new Order({
+                user: {
+                    email: req.user.email,
+                    userId: req.user
+                },
+                products: products
+            });
+            return order.save();
+        })
+        .then(result => {
+            return req.user.clearCart();
+        })
+        .then(() => {
+            res.redirect('/orders');
+        })
+        .catch(err => {
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
+        });
+};
+
+/*
+Whenever I post an order through cart, I could store a token in the database, for example in a collection called
+orderToken, which could be an uuid or a crypto.randomBytes string. and then, in the success_url redirect, I can pass
+in that token as a query parameter, and, once checkoutAccess is accessed, compare the query token with the db token
+to see if it exists on the database, and in case of true, erase the database token and post the new order, I could
+store this temporary token in the session object for more protection using req.flash.
+ */
 exports.postOrder = (req, res, next) => {
     req.user.populate('cart.items.productId')
         .then((user) => {

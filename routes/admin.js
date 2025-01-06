@@ -21,6 +21,6 @@ router.get('/edit-product/:productId', isAuth.rejectIfCurrentClientIsNotLoggedIn
 
 router.post('/edit-product', isAuth.rejectIfCurrentClientIsNotLoggedIn, adminValidator.postEditProduct, isAdmin.rejectIfEditProductValidationFails, adminController.postEditProduct)
 
-router.post('/delete-product', isAuth.rejectIfCurrentClientIsNotLoggedIn, adminController.postDeleteProduct)
+router.delete('/product/:productId', isAuth.rejectIfCurrentClientIsNotLoggedIn, adminController.deleteProduct)
 
 module.exports = router;
