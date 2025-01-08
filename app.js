@@ -10,6 +10,8 @@ const multer = require("multer");
 /** CSRF-CSRF PACKAGE */
 const {csrfSync} = require('csrf-sync');
 const connectFlash = require('connect-flash');
+const compression = require('compression');
+const helmet = require('helmet');
 const errorController = require('./controllers/error');
 const User = require('./models/User');
 const env = require("dotenv")
@@ -48,6 +50,17 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     // Alternative to render
     // app.use('/images', express.static('images'));
     app.use(express.static('images'));
+    app.use(helmet());
+    // app.use(
+    //     helmet.contentSecurityPolicy({
+    //         useDefaults: true,
+    //         directives: {
+    //             "img-src": ["'self'", "https: data:"],
+    //             "script-src": ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://maxcdn.bootstrapcdn.com", "https://cdn.jsdelivr.net"],
+    //         }
+    //     })
+    // );
+    app.use(compression())
 
     const store = new MongoDBStore({
         uri: process.env.MONGODB_URI,
