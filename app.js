@@ -103,7 +103,7 @@ mongoose.connect('mongodb+srv://cluster0.gwokf.mongodb.net/', {
     app.use((err, req, res, next) => {
         errorController.get500(req, res);
     })
-    app.listen(8080);
+    app.listen(process.env.PORT);
 }).catch(err => {
     console.log(err);
 })
